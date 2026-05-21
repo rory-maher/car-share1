@@ -22,6 +22,51 @@ body {
 }
 .app header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: -.3px; }
 
+.header-actions { display: flex; align-items: center; gap: .5rem; }
+
+.install-btn {
+  background: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.9);
+  border: 1px solid rgba(255,255,255,.25);
+  padding: .4rem .85rem;
+  border-radius: 7px;
+  font-size: .8rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .13s;
+}
+.install-btn:hover { background: rgba(255,255,255,.22); }
+
+.ios-install { position: relative; }
+.ios-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  font-size: .82rem;
+  width: 210px;
+  line-height: 1.55;
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  z-index: 300;
+}
+.ios-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 18px;
+  width: 9px;
+  height: 9px;
+  background: #1e293b;
+  border-left: 1px solid rgba(255,255,255,.15);
+  border-top: 1px solid rgba(255,255,255,.15);
+  transform: rotate(45deg);
+}
+
 /* ── Main ── */
 main {
   max-width: 720px;

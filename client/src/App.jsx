@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getCars, addCar, deleteCar, getBookings } from './api.js';
 import CarItem from './components/CarItem.jsx';
 import AddCarModal from './components/AddCarModal.jsx';
+import InstallButton from './components/InstallButton.jsx';
 
 export default function App() {
   const [cars, setCars] = useState([]);
@@ -34,7 +35,10 @@ export default function App() {
     <div className="app">
       <header>
         <h1>Family Car Booking</h1>
-        <button onClick={() => setShowAdd(true)}>+ Add Car</button>
+        <div className="header-actions">
+          <InstallButton />
+          <button onClick={() => setShowAdd(true)}>+ Add Car</button>
+        </div>
       </header>
 
       <main>
