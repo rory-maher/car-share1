@@ -7,13 +7,23 @@ function toStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+function fmtDate(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+}
+
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  return m === '00' ? `${Number(h)}:00` : `${Number(h)}:${m}`;
+}
+
 export default function CarItem({ car, bookings, onBooked, onDelete }) {
   const [showBook, setShowBook] = useState(false);
 
   const today = toStr(new Date());
   const upcoming = bookings
     .filter(b => b.status !== 'cancelled' && b.end_date >= today)
-    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+    .sort((a, b) => `${a.start_date}T${a.start_time}`.localeCompare(`${b.start_date}T${b.start_time}`));
 
   async function handleCancel(id) {
     if (!window.confirm('Cancel this booking?')) return;
@@ -21,8 +31,11 @@ export default function CarItem({ car, bookings, onBooked, onDelete }) {
     onBooked();
   }
 
-  function fmtDate(d) {
-    return new Date(d + 'T00:00:00').toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+  function fmtRange(b) {
+    if (b.start_date === b.end_date) {
+      return `${fmtDate(b.start_date)}, ${fmtTime(b.start_time)} – ${fmtTime(b.end_time)}`;
+    }
+    return `${fmtDate(b.start_date)} ${fmtTime(b.start_time)} – ${fmtDate(b.end_date)} ${fmtTime(b.end_time)}`;
   }
 
   return (
@@ -44,7 +57,7 @@ export default function CarItem({ car, bookings, onBooked, onDelete }) {
             <div key={b.id} className="booking-row">
               <div className="booking-row-info">
                 <strong>{b.booker}</strong>
-                <span>{fmtDate(b.start_date)} – {fmtDate(b.end_date)}</span>
+                <span>{fmtRange(b)}</span>
                 {b.note && <span className="booking-note">{b.note}</span>}
               </div>
               <button className="cancel-btn" onClick={() => handleCancel(b.id)}>Cancel</button>

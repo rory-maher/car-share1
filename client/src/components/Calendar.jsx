@@ -14,30 +14,48 @@ function toStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  return m === '00' ? h : `${Number(h)}:${m}`;
+}
+
+function pillLabel(b, dateStr) {
+  const name = b.booker.split(' ')[0];
+  const isStart = b.start_date === dateStr;
+  const isEnd   = b.end_date   === dateStr;
+  if (isStart && isEnd) return `${name} ${fmtTime(b.start_time)}-${fmtTime(b.end_time)}`;
+  if (isStart)          return `${name} ${fmtTime(b.start_time)}→`;
+  if (isEnd)            return `${name} →${fmtTime(b.end_time)}`;
+  return name;
+}
+
 export default function Calendar({ bookings }) {
   const now = new Date();
   const [year,  setYear]  = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
 
-  function prev() { month === 0 ? (setYear(y => y-1), setMonth(11)) : setMonth(m => m-1); }
+  function prev() { month === 0  ? (setYear(y => y-1), setMonth(11)) : setMonth(m => m-1); }
   function next() { month === 11 ? (setYear(y => y+1), setMonth(0))  : setMonth(m => m+1); }
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startDow    = new Date(year, month, 1).getDay();
   const today       = toStr(now);
 
-  // Build date → booking map (end_date inclusive)
+  // Build dateStr -> [booking, ...] map
   const dateMap = {};
   for (const b of bookings) {
     if (b.status === 'cancelled') continue;
-    const start = new Date(b.start_date + 'T00:00:00');
-    const end   = new Date(b.end_date   + 'T00:00:00');
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      dateMap[toStr(d)] = b;
+    let d = new Date(b.start_date + 'T00:00:00');
+    const endDay = new Date(b.end_date + 'T00:00:00');
+    while (d <= endDay) {
+      const key = toStr(d);
+      if (!dateMap[key]) dateMap[key] = [];
+      dateMap[key].push(b);
+      d.setDate(d.getDate() + 1);
     }
   }
 
-  // Padding + day cells
   const cells = [
     ...Array(startDow).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => {
@@ -47,7 +65,6 @@ export default function Calendar({ bookings }) {
     }),
   ];
 
-  // Unique bookers for legend
   const bookers = [...new Map(
     bookings.filter(b => b.status !== 'cancelled').map(b => [b.booker, b])
   ).values()];
@@ -65,18 +82,24 @@ export default function Calendar({ bookings }) {
         {cells.map((cell, i) => {
           if (!cell) return <div key={i} className="cal-cell empty" />;
           const { day, dateStr } = cell;
-          const booking  = dateMap[dateStr];
-          const isToday  = dateStr === today;
-          const isStart  = booking?.start_date === dateStr;
+          const entries = dateMap[dateStr] || [];
+          const isToday = dateStr === today;
           return (
-            <div
-              key={i}
-              className={`cal-cell${booking ? ' booked' : ''}${isToday ? ' today' : ''}`}
-              style={booking ? { background: nameColor(booking.booker) } : {}}
-              title={booking ? `${booking.booker}${booking.note ? ' — ' + booking.note : ''}` : ''}
-            >
+            <div key={i} className={`cal-cell${isToday ? ' today' : ''}`}>
               <span className="day-num">{day}</span>
-              {isStart && <span className="day-label">{booking.booker.split(' ')[0]}</span>}
+              {entries.slice(0, 2).map((b, j) => (
+                <div
+                  key={j}
+                  className="booking-pill"
+                  style={{ background: nameColor(b.booker) }}
+                  title={`${b.booker}${b.note ? ' — ' + b.note : ''}`}
+                >
+                  {pillLabel(b, dateStr)}
+                </div>
+              ))}
+              {entries.length > 2 && (
+                <div className="pill-more">+{entries.length - 2}</div>
+              )}
             </div>
           );
         })}

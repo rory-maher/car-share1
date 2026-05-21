@@ -90,13 +90,12 @@ main {
 }
 .cal-cell {
   border-radius: 7px;
-  min-height: 48px;
+  min-height: 52px;
   padding: 4px 5px;
-  position: relative;
+  background: #f8fafc;
 }
-.cal-cell.empty   { background: transparent; }
-.cal-cell:not(.booked):not(.empty) { background: #f8fafc; }
-.cal-cell.today:not(.booked) { background: #eff6ff; outline: 2px solid #93c5fd; outline-offset: -2px; }
+.cal-cell.empty { background: transparent; }
+.cal-cell.today { background: #eff6ff; outline: 2px solid #93c5fd; outline-offset: -2px; }
 
 .day-num {
   display: block;
@@ -104,18 +103,26 @@ main {
   font-weight: 500;
   color: #444;
   line-height: 1;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
-.cal-cell.booked .day-num { color: rgba(255,255,255,.85); }
 
-.day-label {
-  display: block;
-  font-size: .65rem;
-  font-weight: 700;
+.booking-pill {
+  font-size: .58rem;
+  font-weight: 600;
   color: #fff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.pill-more {
+  font-size: .58rem;
+  color: #888;
+  padding-left: 2px;
 }
 
 .cal-legend {
@@ -240,6 +247,8 @@ form input {
 form input:focus { border-color: #60a5fa; }
 
 .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.datetime-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.datetime-row label { margin-bottom: 0; }
 
 .modal-actions { display: flex; gap: .75rem; margin-top: .25rem; margin-bottom: .75rem; }
 
@@ -270,7 +279,8 @@ form input:focus { border-color: #60a5fa; }
   .booking-row .cancel-btn { align-self: flex-end; margin-left: auto; }
 
   .modal { padding: 1.5rem 1.25rem; }
-  .date-row { grid-template-columns: 1fr; }
+  .date-row,
+  .datetime-row { grid-template-columns: 1fr; }
 
   .modal-actions { flex-direction: column; }
   .modal-actions button { width: 100%; }

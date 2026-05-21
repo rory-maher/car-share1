@@ -15,10 +15,15 @@ function save(db) {
 
 let db = load();
 
-// Reset if db is using the old schema (had daily_rate)
 if (!db || (db.cars && db.cars[0] && db.cars[0].daily_rate !== undefined)) {
   db = { cars: [], bookings: [] };
   save(db);
+}
+
+// Migrate old bookings that predate time fields
+for (const b of db.bookings) {
+  if (!b.start_time) b.start_time = '00:00';
+  if (!b.end_time)   b.end_time   = '23:59';
 }
 
 let nextCarId     = db.cars.length     ? Math.max(...db.cars.map(c => c.id))     + 1 : 1;
@@ -44,14 +49,16 @@ module.exports = {
   getBookings:    (carId) => carId != null ? db.bookings.filter(b => b.car_id === carId) : db.bookings,
   getBookingById: (id) => db.bookings.find(b => b.id === id),
 
-  // Inclusive end_date: conflict if ranges overlap at all
-  hasConflict: (car_id, start_date, end_date, excludeId = null) =>
-    db.bookings.some(b =>
-      b.car_id === car_id &&
-      b.status !== 'cancelled' &&
-      b.id !== excludeId &&
-      !(b.end_date < start_date || b.start_date > end_date)
-    ),
+  hasConflict: (car_id, start_date, start_time, end_date, end_time, excludeId = null) => {
+    const aStart = new Date(`${start_date}T${start_time}`);
+    const aEnd   = new Date(`${end_date}T${end_time}`);
+    return db.bookings.some(b => {
+      if (b.car_id !== car_id || b.status === 'cancelled' || b.id === excludeId) return false;
+      const bStart = new Date(`${b.start_date}T${b.start_time}`);
+      const bEnd   = new Date(`${b.end_date}T${b.end_time}`);
+      return aStart < bEnd && aEnd > bStart;
+    });
+  },
 
   createBooking: (data) => {
     const booking = { id: nextBookingId++, ...data, status: 'confirmed', created_at: new Date().toISOString() };

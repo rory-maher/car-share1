@@ -18,9 +18,11 @@ router.delete('/:id', (req, res) => {
 });
 
 router.get('/:id/availability', (req, res) => {
-  const { start, end } = req.query;
-  if (!start || !end) return res.status(400).json({ error: 'start and end required' });
-  res.json({ available: !db.hasConflict(Number(req.params.id), start, end) });
+  const { start_date, start_time, end_date, end_time } = req.query;
+  if (!start_date || !start_time || !end_date || !end_time) {
+    return res.status(400).json({ error: 'start_date, start_time, end_date, end_time are required' });
+  }
+  res.json({ available: !db.hasConflict(Number(req.params.id), start_date, start_time, end_date, end_time) });
 });
 
 module.exports = router;
