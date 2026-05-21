@@ -20,10 +20,11 @@ if (!db || (db.cars && db.cars[0] && db.cars[0].daily_rate !== undefined)) {
   save(db);
 }
 
-// Migrate old bookings that predate time fields
+// Migrate bookings that predate time / all_day fields
 for (const b of db.bookings) {
   if (!b.start_time) b.start_time = '00:00';
   if (!b.end_time)   b.end_time   = '23:59';
+  if (b.all_day === undefined) b.all_day = false;
 }
 
 let nextCarId     = db.cars.length     ? Math.max(...db.cars.map(c => c.id))     + 1 : 1;
@@ -71,5 +72,15 @@ module.exports = {
     const b = db.bookings.find(b => b.id === id);
     if (b) { b.status = 'cancelled'; save(db); }
     return b;
+  },
+
+  cancelGroup: (group_id) => {
+    const today = new Date().toISOString().split('T')[0];
+    for (const b of db.bookings) {
+      if (b.recurring_group_id === group_id && b.status !== 'cancelled' && b.start_date >= today) {
+        b.status = 'cancelled';
+      }
+    }
+    save(db);
   },
 };

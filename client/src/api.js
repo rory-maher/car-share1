@@ -21,3 +21,6 @@ export const createBooking = (data) =>
 
 export const cancelBooking = (id) =>
   fetch(`${BASE}/bookings/${id}`, { method: 'DELETE' }).then(handle);
+
+export const cancelGroup = (group_id) =>
+  fetch(`${BASE}/bookings/group/${group_id}`, { method: 'DELETE' }).then(handle);
